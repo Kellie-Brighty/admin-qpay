@@ -1,0 +1,1 @@
+{"version":3,"file":"static/css/main.0abce9d4.css","mappings":"AAAA,EAII,qBAAsB,CADtB,4BAAgC,CADhC,QAAS,CADT,SAIJ,CACA,EACI,aACJ","sources":["App.css"],"sourcesContent":["*{\r\n    padding: 0;\r\n    margin: 0;\r\n    font-family: 'Inter', sans-serif;\r\n    background-color: #000;\r\n}\r\ne{\r\n    color: rgb(50, 50, 50);\r\n}"],"names":[],"sourceRoot":""}
