@@ -146,65 +146,21 @@ const useStyles = makeStyles((theme) => ({
       fontWeight: "500",
     },
   },
+  loading_text: {
+    color: "#fff",
+    // textAlign: "center",
+    fontSize: 25,
+    marginTop: 10,
+    [theme.breakpoints.down("xs")]: {
+      fontSize: 12
+    }
+  },
 }));
 
 const Exchangers = () => {
   const classes = useStyles();
-  const [firstState, setFirstState] = useState("Active");
-  const [secondState, setSecondState] = useState("Inactive");
-  const [thirdState, setThirdState] = useState("Inactive");
   const [exchangers, setExchangers] = useState();
-
-  // const exchangers = [
-  //   {
-  //     id: 1,
-  //     email: "ayomikunalimi@gmail.com",
-  //     image: "img1.png",
-  //     state: firstState,
-  //     setter: setFirstState,
-  //   },
-  //   {
-  //     id: 2,
-  //     email: "mofolawuyi@gmail.com",
-  //     image: "img2.png",
-  //     state: secondState,
-  //     setter: setSecondState,
-  //   },
-  //   {
-  //     id: 3,
-  //     email: "Cephastrust@gmail.com",
-  //     image: "img3.png",
-  //     state: thirdState,
-  //     setter: setThirdState,
-  //   },
-  // ];
-
-  // const toggleState = (id) => {
-  //   exchangers.find((obj) => {
-  //     if (obj.id === id) {
-  //       if (obj.state === "Active") {
-  //         obj.setter("Inactive");
-  //       } else {
-  //         obj.setter("Active");
-  //       }
-  //     }
-  //   });
-  // };
-
-  // useEffect(() => {
-  //   if (firstState === "Active") {
-  //     setSecondState("Inactive");
-  //     setThirdState("Inactive");
-  //   }
-  //   if (secondState === "Active") {
-  //     setFirstState("Inactive");
-  //     setThirdState("Inactive");
-  //   }
-  //   if (thirdState === "Active") {
-  //     setSecondState("Inactive");
-  //     setFirstState("Inactive");
-  //   }
-  // }, [firstState, secondState, thirdState]);
+  const [loading, setLoading] = useState(false);
 
   const fetchExhangers = async () => {
     const token = localStorage.getItem("qpay_session_token");
@@ -221,9 +177,9 @@ const Exchangers = () => {
       );
 
       const response = await res.json();
-      console.log(response);
       console.log(res.status);
-      setExchangers(response.data);
+      const sortedArray = response.data.sort((a, b) => a.id - b.id);
+      setExchangers(sortedArray);
     } catch (err) {
       console.log(err);
     }
@@ -232,6 +188,32 @@ const Exchangers = () => {
   useEffect(() => {
     fetchExhangers();
   }, []);
+
+  const activateExchanger = async (id) => {
+    setLoading(true);
+    const token = localStorage.getItem("qpay_session_token");
+    try {
+      const res = await fetch(
+        `${process.env.REACT_APP_SERVER_URL}/auth/exchanger/${id}`,
+        {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      const response = await res.json();
+      console.log(res.status);
+      console.log(response);
+      if (res.status === 200) {
+        fetchExhangers();
+        setLoading(false);
+      }
+    } catch (err) {
+      console.log(err);
+    }
+  };
 
   return (
     <div className={classes.body}>
@@ -242,25 +224,39 @@ const Exchangers = () => {
         <p className={classes.exchangers_title_state}>State</p>
       </div>
 
-      {exchangers &&
-        exchangers.map((person) => (
-          <div className={classes.exchangers_box} key={person.id}>
-            <div className={classes.exchanger_flex}>
-              <p className={classes.exchanger_id}>{person.id}</p>
-              <p className={classes.exchanger_email}>{person.email}</p>
-              <img src={person.avatar} className={classes.exchanger_image} />
-              {person.state === true ? (
-                <>
-                  <button className={classes.active_button}>Active</button>
-                </>
-              ) : (
-                <>
-                  <button className={classes.inactive_button}>Inactive</button>
-                </>
-              )}
-            </div>
-          </div>
-        ))}
+      {loading ? (
+        <p className={classes.loading_text}>Please wait...</p>
+      ) : (
+        <>
+          {exchangers &&
+            exchangers.map((person) => (
+              <div className={classes.exchangers_box} key={person.id}>
+                <div className={classes.exchanger_flex}>
+                  <p className={classes.exchanger_id}>{person.id}</p>
+                  <p className={classes.exchanger_email}>{person.email}</p>
+                  <img
+                    src={person.avatar}
+                    className={classes.exchanger_image}
+                  />
+                  {person.state === true ? (
+                    <>
+                      <button className={classes.active_button}>Active</button>
+                    </>
+                  ) : (
+                    <>
+                      <button
+                        className={classes.inactive_button}
+                        onClick={() => activateExchanger(person.id)}
+                      >
+                        Inactive
+                      </button>
+                    </>
+                  )}
+                </div>
+              </div>
+            ))}
+        </>
+      )}
     </div>
   );
 };
