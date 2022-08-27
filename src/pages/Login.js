@@ -158,9 +158,13 @@ const useStyles = makeStyles((theme) => ({
   },
   error: {
     color: "#fff",
-    textAlign: 'center',
-    marginTop: 20
-  }
+    textAlign: "center",
+    marginTop: 20,
+    [theme.breakpoints.down("xs")]: {
+      maxWidth: 200,
+      margin: "20px auto",
+    },
+  },
 }));
 
 const Login = () => {
@@ -181,7 +185,7 @@ const Login = () => {
 
     if (email === "" || password === "") {
       setErrors("Please don't lean any field empty.");
-      setLoading(false)
+      setLoading(false);
     } else {
       try {
         const login_data = {
@@ -200,20 +204,29 @@ const Login = () => {
         );
 
         const response = await res.json();
-        console.log(response);
-        setLoading(false)
+        if (res.status === 200) {
+          console.log(response.token);
+          localStorage.setItem("qpay_session_token", response.token);
+          navigate("/Dashboard");
+        }
+        setLoading(false);
       } catch (err) {
         console.log(err);
-        if(err) {
-          setErrors("There was an issue authenticating user. Please try again later.")
+        if (err) {
+          setErrors(
+            "There was an issue authenticating user. Please try again later."
+          );
         }
-        setLoading(false)
+        setLoading(false);
       }
     }
   };
 
   useEffect(() => {
-    console.log(process.env.REACT_APP_SERVER_URL);
+    const token = localStorage.getItem("qpay_session_token");
+    if (token) {
+      navigate("/Dashboard");
+    }
   }, []);
 
   return (
@@ -231,7 +244,7 @@ const Login = () => {
                 value={email}
                 onChange={(e) => {
                   setEmail(e.target.value);
-                  setErrors(null)
+                  setErrors(null);
                 }}
               />
             </div>
@@ -244,7 +257,7 @@ const Login = () => {
                   value={password}
                   onChange={(e) => {
                     setPassword(e.target.value);
-                    setErrors(null)
+                    setErrors(null);
                   }}
                 />
                 {visible ? (
@@ -261,15 +274,10 @@ const Login = () => {
               </div>
             </div>
 
-            {errors && (
-              <p className={classes.error}>{errors}</p>
-            )}
+            {errors && <p className={classes.error}>{errors}</p>}
 
             <div className={classes.login_button}>
-              <button
-                className={classes.btn}
-                onClick={() => login()}
-              >
+              <button className={classes.btn} onClick={() => login()}>
                 {loading ? "Login in..." : "Log in"}
               </button>
             </div>
