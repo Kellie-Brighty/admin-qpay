@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { makeStyles } from "@material-ui/styles";
 
 const useStyles = makeStyles((theme) => ({
@@ -78,16 +78,87 @@ const useStyles = makeStyles((theme) => ({
     fontSize: 20,
     fontWeight: 600,
     color: "#000",
-    cursor: 'pointer',
+    cursor: "pointer",
     [theme.breakpoints.down("xs")]: {
       fontSize: 14,
       padding: "20px 88px",
     },
   },
+  error_text: {
+    color: "#fff",
+    textAlign: "center",
+    marginTop: 10,
+  },
 }));
 
 const CurrencyRate = () => {
   const classes = useStyles();
+  const [rate, setRate] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [errors, setErrors] = useState(null);
+  const currency = "USD";
+
+  const updateRate = async () => {
+    setLoading(true);
+    setErrors(null);
+
+    if (rate === "") {
+      setErrors("Please input a valid rate.");
+      setLoading(false);
+    } else {
+      const rate_data = {
+        rate: rate,
+        currency: currency,
+      };
+      try {
+        const token = localStorage.getItem("qpay_session_token");
+        const res = await fetch(
+          `${process.env.REACT_APP_SERVER_URL}/auth/rate`,
+          {
+            method: "POST",
+            body: JSON.stringify(rate_data),
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+
+        const response = await res.json();
+        if (res.status === 200) {
+          setLoading(false);
+          setErrors(response.message);
+        }
+      } catch (err) {
+        console.log(err);
+        setLoading(false);
+      }
+    }
+  };
+
+  const getCurrentRate = async () => {
+    const token = localStorage.getItem("qpay_session_token");
+    const res = await fetch(
+      `${process.env.REACT_APP_SERVER_URL}/auth/rate?currency=USD`,
+      {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+
+    const response = await res.json();
+    console.log(response);
+    setRate(response.data.rate)
+    console.log(res.status);
+  };
+
+  useEffect(() => {
+    getCurrentRate();
+  }, []);
+
   return (
     <div>
       <div className={classes.currency_rate}>
@@ -95,12 +166,25 @@ const CurrencyRate = () => {
           <div>
             <p className={classes.rate_text}>Current exchange rate</p>
           </div>
-          <div className={classes.input_div}>
-            <p className={classes.naira}>₦</p>
-            <input type="number" className={classes.input} />
+          <div>
+            <div className={classes.input_div}>
+              <p className={classes.naira}>₦</p>
+              <input
+                type="number"
+                className={classes.input}
+                value={rate}
+                onChange={(e) => {
+                  setRate(e.target.value);
+                  setErrors(null);
+                }}
+              />
+            </div>
+            {errors && <p className={classes.error_text}>{errors}</p>}
           </div>
           <div className={classes.btn_box}>
-            <button className={classes.btn}>Update</button>
+            <button className={classes.btn} onClick={() => updateRate()}>
+              {loading ? "Updating..." : "Update"}
+            </button>
           </div>
         </div>
       </div>
