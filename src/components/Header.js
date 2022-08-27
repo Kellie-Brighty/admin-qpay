@@ -77,7 +77,10 @@ const Header = () => {
         {location === "/" ? null : (
           <div className={classes.menu_box}>
             <div className={classes.menu_item}>
-              <button className={classes.button} onClick={() => navigate("/")}>
+              <button className={classes.button} onClick={() => {
+                localStorage.clear();
+                navigate("/");
+              }}>
                 Log out
               </button>
             </div>
